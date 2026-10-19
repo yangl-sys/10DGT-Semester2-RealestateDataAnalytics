@@ -2,11 +2,17 @@ from pathlib import Path
 import requests
 import sqlite3
 import json
-
+import pandas as pd
 from bs4 import BeautifulSoup
 
-data = [["109 Hancock Road","29-09-2026",770000,3,1,2,452,"House"],]
-
+csv = pd.read_csv('websites/ttg_house_sales_2026 - ttg_house_sales_2026.csv')
+csv=csv.to_dict(orient="records")
+print(csv)
+data = []
+for i in csv:
+    i["Amount"]=i["Amount"][1:].replace(",", "")
+    data.append(i)
+print(data)
 connection = sqlite3.connect("ttg_housing.db")
 cursor = connection.cursor()
 cursor.execute("DROP TABLE IF EXISTS sold")
@@ -19,10 +25,7 @@ cursor.execute('''
         date TEXT,
         price INTEGER,
         beds INTEGER,
-        bath INTEGER,
-        cars INTEGER,
-        size INTEGER,
-        type TEXT
+        size INTEGER
     )
 ''')
 
@@ -33,13 +36,10 @@ for i in data:
             date,
             price,
             beds,
-            bath,
-            cars,
-            size,
-            type
-        ) VALUES(?,?,?,?,?,?,?,?)
+            size
+        ) VALUES(?,?,?,?,?)
         ON CONFLICT(address) DO NOTHING
-    ''',(i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7]))
+    ''',(i["Address"],i["Date"],int(i["Amount"]),int(i["Bedrooms"]),int(i["Land Size"])))
 
 connection.commit()
 connection.close()

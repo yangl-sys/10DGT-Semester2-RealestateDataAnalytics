@@ -1,7 +1,14 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h1>Index</h1>
-  <p class="important">
-    Welcome on my awesome homepage.
+  <h1>Raw data</h1>
+  <div>
+    {%for i in data%}
+      {%for j in i%}
+        {{j}}
+      {%endfor%}
+      <br>
+    {%endfor%}
+  </div>
+    
 {% endblock %}
