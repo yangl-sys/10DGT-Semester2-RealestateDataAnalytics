@@ -7,12 +7,10 @@ from bs4 import BeautifulSoup
 
 csv = pd.read_csv('websites/ttg_house_sales_2026 - ttg_house_sales_2026.csv')
 csv=csv.to_dict(orient="records")
-print(csv)
 data = []
 for i in csv:
-    i["Amount"]=i["Amount"][1:].replace(",", "")
+    i["Amount"]=i["Amount"].replace(",", "").replace("$","")
     data.append(i)
-print(data)
 connection = sqlite3.connect("ttg_housing.db")
 cursor = connection.cursor()
 cursor.execute("DROP TABLE IF EXISTS sold")
