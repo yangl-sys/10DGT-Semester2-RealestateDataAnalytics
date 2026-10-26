@@ -38,6 +38,5 @@ for i in data:
         ) VALUES(?,?,?,?,?)
         ON CONFLICT(address) DO NOTHING
     ''',(i["Address"],i["Date"],int(i["Amount"]),int(i["Bedrooms"]),int(i["Land Size"])))
-
 connection.commit()
 connection.close()

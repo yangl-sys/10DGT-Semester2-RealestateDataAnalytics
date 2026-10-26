@@ -1,4 +1,6 @@
-from flask import Flask, render_template, redirect, url_for
+import re
+
+from flask import Flask, render_template, redirect, url_for, request
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -30,25 +32,25 @@ def raw():
      conn.close()
      return render_template('raw.html',data=data)
 
-@app.route('/graphs')
+@app.route('/graphs', methods=['GET', 'POST'])
 def graphs():
      conn = get_db_connection()
      data = conn.execute("SELECT * FROM sold").fetchall()
-     df = pd.DataFrame(data)
-     def graph(x,y,name):
+     columnnames = ["ID","Address","Date Sold","Price($)","# of Beds","Size(m²)"]
+     df = pd.DataFrame(data, columns = columnnames)
+     def graph(x,y):
           fig,ax =plt.subplots()
-          ax.bar(df[x],df[y])
-          if pd.api.types.is_datetime64_any_dtype(df[x]):
-               print("Yes")
-               ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b %y'))
-               fig.autofmt_xdate()
-          else:
-               print("No")
-          fig.savefig(f'static/{name}.png')
+          ax.scatter(df[x],df[y])
+          plt.xlabel(x)
+          plt.ylabel(y)
+          fig.autofmt_xdate()
+          fig.savefig('static/graph.png')
           plt.close(fig)
-     graph(2,3,"dateprice")
-     graph(4,3,"sizeprice")
-     return render_template('graphs.html')
+     if request.method =="POST":
+          x = request.form.get("x")
+          y = request.form.get("y")
+          graph(x,y)
+     return render_template('graphs.html',options = columnnames)
 
 @app.route('/predict')
 def predict():

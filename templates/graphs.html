@@ -1,7 +1,30 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h1>Index</h1>
-  <p class="important">
-    Welcome on my awesome homepage.
+  <h1>Grapher</h1>
+  <div>
+    <form id = "form" method="POST">
+      <label class="form-label fw-bold">x axis</label>
+      <select class="form-select" name = "x">
+        <option> Select x-axis</option>
+        {%for i in options%}
+        <option>
+            {{i}}
+        </option>
+        {%endfor%}
+      </select>
+
+      <label class="form-label fw-bold">y axis</label>
+      <select class="form-select" name = "y">
+        <option> Select y-axis</option>
+        {%for i in options%}
+        <option>
+            {{i}}
+        </option>
+        {%endfor%}
+      </select>
+      <button type="submit" class="btn px-5 py-2">Make Graph</button>
+    </form>
+    <img src="{{ url_for('static', filename='graph.png') }}">
+  </div>
 {% endblock %}
