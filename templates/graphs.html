@@ -28,7 +28,7 @@
     <img src="{{ url_for('static', filename='graph.png') }}">
   </div>
 
-<div>
+<div style="position: relative; width: 100%; max-width: 800px; height: 400px; margin: 0 auto;">
   <canvas id="myChart"></canvas>
 </div>
 
@@ -36,21 +36,71 @@
 
 <script>
   const ctx = document.getElementById('myChart');
-  const Data = {{ chart|tojson }};
-  new Chart(ctx, {
-    type: 'scatter',
-    datasets: {
-      label: Data.labels,
-      data: Data.y
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
+  const Data = {{ cdata|default([])|tojson }}
+
+  if (Data && Data.length > 0) {
+    const hasstrings = Data.some(item => typeof item.x === 'string' && isNaN(Number(item.x)));
+
+    let graphtype = 'scatter';
+    let chartdata = {};
+    let chartoptions = {
+      responsive: true,
+      maintainAspectRatio: false
+    };
+    if (hasstrings) {
+      graphtype = 'bar'
+      chartData = {
+        labels: Data.map(item => String(item.x)), //map gets the x value in the data and appends it into a list. kinda like [for in]
+        datasets: [{
+          label: 'Graph of {{labelx}} vs. {{labely}}',
+          data: Data.map(item => parseFloat(item.y)), 
+          backgroundColor: 'rgba(54, 162, 235, 0.7)',
+          borderColor: 'rgb(54, 162, 235)',
+          borderWidth: 1
+        }]
+      };
     }
-  });
+    
+    else {
+      // --- SCATTER CHART CONFIGURATION ---
+      // If everything is completely numeric, use your original coordinate scatter plot
+      graphType = 'scatter';
+      
+      const parsedCoordinates = rawData.map(item => ({
+        x: parseFloat(item.x),
+        y: parseFloat(item.y)
+      }));
+
+      chartData = {
+        datasets: [{
+          label: 'Graph of {{labelx}} vs. {{labely}}',
+          data: parsedCoordinates,
+          backgroundColor: 'rgb(54, 162, 235)',
+          pointRadius: 6,
+          xAxisID: 'x',
+          yAxisID: 'y'
+        }]
+      };
+
+      chartOptions.scales = {
+        x: {
+          type: 'linear', // Required to plot numbers spatially
+          grace: '5%'
+        },
+        y: {
+          beginAtZero: true,
+          grace: '5%'
+        }
+      };
+    }
+
+    // 3. INITIALISE COHESIVE CHART ENGINE
+    new Chart(ctx, { 
+      type: graphType,
+      data: chartData,
+      options: chartOptions
+    });
+}
 </script>
 
 {% endblock %}
