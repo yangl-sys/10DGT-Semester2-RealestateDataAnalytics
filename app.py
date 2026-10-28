@@ -38,6 +38,7 @@ def graphs():
      data = conn.execute("SELECT * FROM sold").fetchall()
      columnnames = ["ID","Address","Date Sold","Price($)","# of Beds","Size(m²)"]
      df = pd.DataFrame(data, columns = columnnames)
+     chart = {}
      def graph(x,y):
           fig,ax =plt.subplots()
           ax.scatter(df[x],df[y])
@@ -47,10 +48,15 @@ def graphs():
           fig.savefig('static/graph.png')
           plt.close(fig)
      if request.method =="POST":
-          x = request.form.get("x")
-          y = request.form.get("y")
-          graph(x,y)
-     return render_template('graphs.html',options = columnnames)
+          x = df[request.form.get("x")]
+          y = df[request.form.get("y")]
+          chart= {
+          'labels': df['Address'].tolist(),
+          f'y': df[y].tolist(),
+          }
+          
+          print(x,y)
+     return render_template('graphs.html',options = columnnames,chart=chart)
 
 @app.route('/predict')
 def predict():
