@@ -2,7 +2,6 @@ import re
 
 from flask import Flask, render_template, redirect, url_for, request
 import matplotlib
-import matplotlib.pyplot as plt
 import pandas as pd
 import sqlite3
 import io
@@ -38,14 +37,9 @@ def graphs():
      data = conn.execute("SELECT * FROM sold").fetchall()
      columnnames = ["ID","Address","Date Sold","Price($)","# of Beds","Size(m²)"]
      df = pd.DataFrame(data, columns = columnnames)
-     def graph(x,y):
-          fig,ax =plt.subplots()
-          ax.scatter(df[x],df[y])
-          plt.xlabel(x)
-          plt.ylabel(y)
-          fig.autofmt_xdate()
-          fig.savefig('static/graph.png')
-          plt.close(fig)
+     columnnames.remove("ID")
+     columnnamesx = columnnames
+     columnnamesy = [i for i in columnnames if pd.api.types.is_any_real_numeric_dtype(df[i])]
      if request.method =="POST":
           labelx = request.form.get("x")
           labely = request.form.get("y")
@@ -56,7 +50,7 @@ def graphs():
           cdata=[]
           labelx=''
           labely=''
-     return render_template('graphs.html',options = columnnames,cdata=cdata, labelx = labelx, labely=labely)
+     return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely)
 
 @app.route('/predict')
 def predict():

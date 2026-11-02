@@ -5,9 +5,9 @@
   <div>
     <form id = "form" method="POST">
       <label class="form-label fw-bold">x axis</label>
-      <select class="form-select" name = "x">
-        <option> Select x-axis</option>
-        {%for i in options%}
+      <select class="form-select" name = "x" required>
+        <option value = "" disabled selected> Select x-axis</option>
+        {%for i in optionsx%}
         <option>
             {{i}}
         </option>
@@ -15,9 +15,9 @@
       </select>
 
       <label class="form-label fw-bold">y axis</label>
-      <select class="form-select" name = "y">
-        <option> Select y-axis</option>
-        {%for i in options%}
+      <select class="form-select" name = "y" required>
+        <option value = "" disabled selected> Select y-axis</option>
+        {%for i in optionsy%}
         <option>
             {{i}}
         </option>
@@ -25,7 +25,6 @@
       </select>
       <button type="submit" class="btn px-5 py-2">Make Graph</button>
     </form>
-    <img src="{{ url_for('static', filename='graph.png') }}">
   </div>
 
 <div style="position: relative; width: 100%; max-width: 800px; height: 400px; margin: 0 auto;">
@@ -33,14 +32,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
 <script>
   const ctx = document.getElementById('myChart');
   const Data = {{ cdata|default([])|tojson }}
-  console.log(Data)
   if (Data && Data.length > 0) {
-    const hasstrings = Data.some(item => typeof item.x === 'string' && isNaN(Number(item.x)));
-    console.log(hasstrings)
+    const hasstrings = Data.some(item => typeof item.x === 'string' && isNaN(Number(item.x))); //checks if the type is string and if the string cannot be turned into int  
     let graphType = 'scatter';
     let chartData = {};
     let chartOptions = {
@@ -58,9 +57,24 @@
           borderColor: 'rgb(54, 162, 235)',
           borderWidth: 1
         }]
-      };
+      }
+      const hasDateObject = Data.some(item => !isNaN(Date.parse(item.x))); //checks if the string is a date
+      console.log(hasDateObject)
+      if (hasDateObject) {
+        chartOptions.scales = {
+          x: {
+            type: 'time', 
+            time: {
+              unit: 'month'
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grace: '5%'
+          }
+        };
+        }
     }
-    
     else {
       graphType = 'scatter';
       //sets the variable to something readable by chart js [{x:"",y:""},{x:"",y:""] and makes the values floats
@@ -70,16 +84,27 @@
       }));
 
       chartData = {
-        datasets: [{
-          label: 'Graph of {{labelx}} vs. {{labely}}',
-          data: parsedCoordinates,
-          backgroundColor: 'rgb(54, 162, 235)',
-          pointRadius: 6,
-          xAxisID: 'x',
-          yAxisID: 'y'
-        }]
+        datasets: [
+          {
+            label: 'Graph of {{labelx}} vs. {{labely}}',
+            data: parsedCoordinates,
+            backgroundColor: 'rgb(54, 162, 235)',
+            pointRadius: 6,
+            xAxisID: 'x',
+            yAxisID: 'y'
+          },
+          /*
+            {
+            label: 'Least Squares Regression Line',
+            data: regressionData,
+            type: 'line',
+            borderColor: 'red',
+            fill: false,
+            pointRadius: 0 // Hide points on the line
+          }
+          */
+        ]
       };
-
       chartOptions.scales = {
         x: {
           type: 'linear', 
