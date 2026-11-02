@@ -37,18 +37,18 @@
 <script>
   const ctx = document.getElementById('myChart');
   const Data = {{ cdata|default([])|tojson }}
-
+  console.log(Data)
   if (Data && Data.length > 0) {
     const hasstrings = Data.some(item => typeof item.x === 'string' && isNaN(Number(item.x)));
-
-    let graphtype = 'scatter';
-    let chartdata = {};
-    let chartoptions = {
+    console.log(hasstrings)
+    let graphType = 'scatter';
+    let chartData = {};
+    let chartOptions = {
       responsive: true,
       maintainAspectRatio: false
     };
     if (hasstrings) {
-      graphtype = 'bar'
+      graphType = 'bar'
       chartData = {
         labels: Data.map(item => String(item.x)), //map gets the x value in the data and appends it into a list. kinda like [for in]
         datasets: [{
@@ -62,11 +62,9 @@
     }
     
     else {
-      // --- SCATTER CHART CONFIGURATION ---
-      // If everything is completely numeric, use your original coordinate scatter plot
       graphType = 'scatter';
-      
-      const parsedCoordinates = rawData.map(item => ({
+      //sets the variable to something readable by chart js [{x:"",y:""},{x:"",y:""] and makes the values floats
+      const parsedCoordinates = Data.map(item => ({
         x: parseFloat(item.x),
         y: parseFloat(item.y)
       }));
@@ -84,7 +82,7 @@
 
       chartOptions.scales = {
         x: {
-          type: 'linear', // Required to plot numbers spatially
+          type: 'linear', 
           grace: '5%'
         },
         y: {
@@ -94,7 +92,7 @@
       };
     }
 
-    // 3. INITIALISE COHESIVE CHART ENGINE
+    //makes the chart
     new Chart(ctx, { 
       type: graphType,
       data: chartData,
