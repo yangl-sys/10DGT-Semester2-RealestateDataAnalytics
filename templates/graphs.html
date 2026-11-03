@@ -38,6 +38,7 @@
 <script>
   const ctx = document.getElementById('myChart');
   const Data = {{ cdata|default([])|tojson }}
+  const trendline = {{ trendlinedata|tojson }}
   if (Data && Data.length > 0) {
     const hasstrings = Data.some(item => typeof item.x === 'string' && isNaN(Number(item.x))); //checks if the type is string and if the string cannot be turned into int  
     let graphType = 'scatter';
@@ -94,16 +95,14 @@
             xAxisID: 'x',
             yAxisID: 'y'
           },
-          /*
-            {
+          {
             label: 'Least Squares Regression Line',
-            data: regressionData,
+            data: trendline,
             type: 'line',
             borderColor: 'red',
             fill: false,
-            pointRadius: 0 // Hide points on the line
+            pointRadius: 0
           }
-          */
         ]
       };
       chartOptions.scales = {

@@ -1,4 +1,4 @@
-import re
+import numpy as np
 
 from flask import Flask, render_template, redirect, url_for, request
 import matplotlib
@@ -46,11 +46,15 @@ def graphs():
           x = df[labelx]
           y = df[labely]
           cdata= [{'x':nx,'y':ny} for nx,ny in zip(x,y)]
+          #make it so that dates work with trendline
+          slope, intercept = np.polyfit(x, y, deg=1) #finds slope and intercept using x and y as points
+          trendline = [{'x':min(x),'y':intercept + slope * min(x)},{'x':max(x),'y':intercept + slope * max(x)}]
      else:
           cdata=[]
+          trendline = []
           labelx=''
           labely=''
-     return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely)
+     return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely,trendlinedata = trendline)
 
 @app.route('/predict')
 def predict():
