@@ -49,11 +49,10 @@
         </div>
 
         <div class="row g-4 align-items-start">
-            
             <!-- Left Column: Input Card (2 Inputs Only) -->
             <div class="col-lg-5">
                 <div class="card custom-card rounded-4 shadow-sm p-3 p-sm-4 bg-body">
-                    <form id="calcForm" onsubmit="event.preventDefault();">
+                    <form id="calcForm" method="POST">
                         
                         <!-- Input 1: Bedrooms -->
                         <div class="mb-4">
@@ -65,7 +64,7 @@
                         </div>
 
                         <div class="input-group input-group-lg mb-2">
-                            <input type="number" id="bedroomsInput" min="1" max="10" value="3" class="form-control text-center fw-bold fs-5">
+                            <input type="number" name="bedroomsInput" value= "{{bed}}" class="form-control text-center fw-bold fs-5">
                         </div>
 
                         <!-- Input 2: Size -->
@@ -77,12 +76,13 @@
                             </div>
                             
                             <div class="input-group input-group-lg mb-3">
-                                <input type="number" id="sizeInput" min="200" max="10000" step="50" value="1500" class="form-control fw-semibold fs-5">
+                                <input type="number" name="sizeInput" value= "{{size}}" class="form-control fw-semibold fs-5">
                                 <span class="input-group-text fw-bold text-uppercase text-body-secondary unitLabel" style="font-size: 0.85rem;">m²</span>
                             </div>
+                        </div>
 
                         <!-- Submit / Recalculate Button -->
-                        <button type="button" id="calculateBtn" class="btn gradient-btn btn-lg w-100 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-center gap-2 py-3 mt-2">
+                        <button type="submit" class="btn gradient-btn btn-lg w-100 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-center gap-2 py-3 mt-2">
                             <span>Calculate Value</span>
                             <i class="fa-solid fa-arrow-right fs-6"></i>
                         </button>
@@ -100,11 +100,11 @@
                     <div class="my-3">
                         <div class="text-uppercase fw-bold text-body-secondary small tracking-wider mb-1">Estimated Property Value</div>
                         <div class="d-flex align-items-baseline gap-2">
-                            <span class="hero-value text-body-emphasis" id="resultValueDisplay">$487,500</span>
+                            <span class="hero-value text-body-emphasis" id="resultValueDisplay">${{value}}</span>
                             <span class="text-body-secondary fw-bold text-uppercase small">AUD</span>
                         </div>
                         <p class="small text-body-secondary mt-2 mb-0 d-flex align-items-center gap-2" id="rangeEstimateText">
-                            <i class="fa-solid fa-circle-info text-primary"></i> Estimated range: $448,500 - $526,500
+                          </i> Estimated range: ${{minval}} - ${{maxval}}
                         </p>
                     </div>
 
@@ -128,7 +128,7 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small mb-1">
                             <span class="text-body-secondary">Average Area per Room</span>
-                            <span class="fw-bold" id="areaPerBedDisplay">500 sq ft / bed</span>
+                            <span class="fw-bold" id="areaPerBedDisplay">{{mperbed}} m²/bed</span>
                         </div>
                     </div>
                 </div>
@@ -136,47 +136,7 @@
         </div>
     </main>
 
-    <!-- Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="toast" class="toast align-items-center border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-success fs-6"></i>
-                    <span id="toastMessage">Action completed!</span>
-                </div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
-
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Application Script -->
-    <script>
-        document.getElementById('calcForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const bedrooms = document.getElementById('bedroomsInput').value;
-        const size = document.getElementById('sizeInput').value;
-        const unit = document.getElementById('unitToggle').checked ? 'sqm' : 'sqft';
-
-        try {
-          const response = await fetch('http://localhost:5000/api/calculate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bedrooms: Number(bedrooms), size: Number(size), unit })
-          });
-
-          const data = await response.json();
-          
-          // Display the number received from Python
-          document.getElementById('resultValue').textContent = `$${data.estimated_value.toLocaleString()}`;
-        } 
-        
-        catch (error) {
-          console.error('Error fetching calculation:', error);
-        }
-        });
-    </script>
 {% endblock %}
