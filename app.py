@@ -47,8 +47,11 @@ def graphs():
           y = df[labely]
           cdata= [{'x':nx,'y':ny} for nx,ny in zip(x,y)]
           #make it so that dates work with trendline
-          slope, intercept = np.polyfit(x, y, deg=1) #finds slope and intercept using x and y as points
-          trendline = [{'x':min(x),'y':intercept + slope * min(x)},{'x':max(x),'y':intercept + slope * max(x)}]
+          if pd.api.types.is_numeric_dtype(x):
+               slope, intercept = np.polyfit(x, y, deg=1) #finds slope and intercept using x and y as points
+               trendline = [{'x':min(x),'y':intercept + slope * min(x)},{'x':max(x),'y':intercept + slope * max(x)}]
+          else:
+               trendline = []
      else:
           cdata=[]
           trendline = []

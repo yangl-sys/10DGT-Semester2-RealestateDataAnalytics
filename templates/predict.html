@@ -1,7 +1,481 @@
 {% extends "layout.html" %}
-
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .hero-value {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+        @media (min-width: 768px) {
+            .hero-value {
+                font-size: 3.5rem;
+            }
+        }
+        .custom-card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+        }
+        [data-bs-theme="light"] .custom-card {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .bed-chip {
+            min-width: 58px;
+        }
+        .gradient-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border: none;
+            color: #fff;
+        }
+        .gradient-btn:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+            color: #fff;
+        }
+        .badge-soft-emerald {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+    </style>
 {% block content %}
-  <h1>Index</h1>
-  <p class="important">
-    Welcome on my awesome homepage.
+  <main class="container-xl my-auto py-4 py-md-5">
+        
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <h1 class="fw-extrabold display-6 mb-1">Property Value Estimator</h1>
+                <p class="text-body-secondary mb-0">Enter the number of bedrooms and overall floor area to generate an instant market value estimate.</p>
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-start">
+            
+            <!-- Left Column: Input Card (2 Inputs Only) -->
+            <div class="col-lg-5">
+                <div class="card custom-card rounded-4 shadow-sm p-3 p-sm-4 bg-body">
+                    <form id="calcForm" onsubmit="event.preventDefault();">
+                        
+                        <!-- Input 1: Bedrooms -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="bedroomsInput" class="form-label fw-semibold mb-0">
+                                    <i class="fa-solid fa-bed text-primary me-2"></i>Bedrooms
+                                </label>
+                                <span class="badge text-bg-secondary font-monospace">1 - 10 rooms</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group input-group-lg mb-2">
+                            <button type="button" id="btnDecBeds" class="btn btn-outline-secondary px-3" aria-label="Decrease bedrooms">
+                                <i class="fa-solid fa-minus fs-6"></i>
+                            </button>
+                            <input type="number" id="bedroomsInput" min="1" max="10" value="3" class="form-control text-center fw-bold fs-5">
+                            <button type="button" id="btnIncBeds" class="btn btn-outline-secondary px-3" aria-label="Increase bedrooms">
+                                <i class="fa-solid fa-plus fs-6"></i>
+                            </button>
+                        </div>
+
+                        <!-- Input 2: Size -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="sizeInput" class="form-label fw-semibold mb-0">
+                                    <i class="fa-solid fa-ruler-combined text-primary me-2"></i>Total Size
+                                </label>
+                                <span class="badge bg-primary-subtle text-primary fw-bold" id="sizeDisplayBadge">1,500 sq ft</span>
+                            </div>
+                            
+                            <div class="input-group input-group-lg mb-3">
+                                <input type="number" id="sizeInput" min="200" max="10000" step="50" value="1500" class="form-control fw-semibold fs-5">
+                                <span class="input-group-text fw-bold text-uppercase text-body-secondary unitLabel" style="font-size: 0.85rem;">sq ft</span>
+                            </div>
+
+                        <!-- Submit / Recalculate Button -->
+                        <button type="button" id="calculateBtn" class="btn gradient-btn btn-lg w-100 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-center gap-2 py-3 mt-2">
+                            <span>Calculate Value</span>
+                            <i class="fa-solid fa-arrow-right fs-6"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Results & Analysis -->
+            <div class="col-lg-7">
+                
+                <!-- Main Value Display Card -->
+                <div class="card custom-card rounded-4 shadow-sm p-4 bg-body mb-4 position-relative overflow-hidden">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="badge badge-soft-emerald rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm" style="width: 0.45rem; height: 0.45rem;"></span>
+                            Live Market Estimate
+                        </span>
+                        <span class="small text-body-secondary" id="calculationTimestamp">Updated just now</span>
+                    </div>
+
+                    <!-- Prominent Estimated Output Number -->
+                    <div class="my-3">
+                        <div class="text-uppercase fw-bold text-body-secondary small tracking-wider mb-1">Estimated Property Value</div>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="hero-value text-body-emphasis" id="resultValueDisplay">$487,500</span>
+                            <span class="text-body-secondary fw-bold text-uppercase small">USD</span>
+                        </div>
+                        <p class="small text-body-secondary mt-2 mb-0 d-flex align-items-center gap-2" id="rangeEstimateText">
+                            <i class="fa-solid fa-circle-info text-primary"></i> Estimated range: $448,500 - $526,500
+                        </p>
+                    </div>
+
+                    <!-- Additional Context Metrics -->
+                    <div class="row g-2 pt-3 border-top mt-2">
+                        <div class="col-4">
+                            <div class="p-2.5 rounded-3 bg-body-tertiary">
+                                <div class="text-uppercase text-body-secondary fw-semibold" style="font-size: 0.65rem;">Price / <span class="unitLabel">sq ft</span></div>
+                                <div class="fw-bold fs-6 text-body-emphasis mt-1" id="pricePerUnit">$325</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2.5 rounded-3 bg-body-tertiary">
+                                <div class="text-uppercase text-body-secondary fw-semibold" style="font-size: 0.65rem;">Est. Rent</div>
+                                <div class="fw-bold fs-6 text-body-emphasis mt-1" id="estRentDisplay">$2,340 /mo</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2.5 rounded-3 bg-body-tertiary">
+                                <div class="text-uppercase text-body-secondary fw-semibold" style="font-size: 0.65rem;">Space Efficiency</div>
+                                <div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="fw-bold fs-6 text-body-emphasis" id="spaceScoreText">88/100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floor Plan Balance Card -->
+                <div class="card custom-card rounded-4 shadow-sm p-4 bg-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Bedroom Density Analysis</h6>
+                        <i class="fa-solid fa-chart-pie text-body-secondary"></i>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-body-secondary">Average Area per Room</span>
+                            <span class="fw-bold" id="areaPerBedDisplay">500 sq ft / bed</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div id="densityProgressBar" class="progress-bar bg-gradient bg-primary" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="small text-body-secondary mt-2" id="densityFeedback">Generous layout with balanced room proportions.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast align-items-center border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-success fs-6"></i>
+                    <span id="toastMessage">Action completed!</span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Application Script -->
+    <script>
+        // State Object
+        const state = {
+            bedrooms: 3,
+            sizeSqFt: 1500,
+            unit: 'sqft', // 'sqft' or 'sqm'
+            theme: 'dark'
+        };
+
+        // DOM Elements
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const unitFtBtn = document.getElementById('unitFtBtn');
+        const unitMBtn = document.getElementById('unitMBtn');
+        
+        const bedroomsInput = document.getElementById('bedroomsInput');
+        const btnDecBeds = document.getElementById('btnDecBeds');
+        const btnIncBeds = document.getElementById('btnIncBeds');
+        
+        const sizeInput = document.getElementById('sizeInput');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeDisplayBadge = document.getElementById('sizeDisplayBadge');
+        
+        const sliderMinLabel = document.getElementById('sliderMinLabel');
+        const sliderMidLabel = document.getElementById('sliderMidLabel');
+        const sliderMaxLabel = document.getElementById('sliderMaxLabel');
+
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultValueDisplay = document.getElementById('resultValueDisplay');
+        const rangeEstimateText = document.getElementById('rangeEstimateText');
+        const pricePerUnit = document.getElementById('pricePerUnit');
+        const estRentDisplay = document.getElementById('estRentDisplay');
+        const spaceScoreText = document.getElementById('spaceScoreText');
+        const areaPerBedDisplay = document.getElementById('areaPerBedDisplay');
+        const densityProgressBar = document.getElementById('densityProgressBar');
+        const densityFeedback = document.getElementById('densityFeedback');
+
+        const copyEstimateBtn = document.getElementById('copyEstimateBtn');
+        const toastEl = document.getElementById('toast');
+        const toastInstance = new bootstrap.Toast(toastEl, { delay: 2500 });
+
+        // Initialize App
+        window.onload = function() {
+            calculate();
+        };
+
+        // Theme Switcher (Bootstrap 5.3 data-bs-theme)
+        themeToggleBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-bs-theme', newTheme);
+            state.theme = newTheme;
+            
+            if (newTheme === 'dark') {
+                themeIcon.className = 'fa-solid fa-moon text-info';
+            } else {
+                themeIcon.className = 'fa-solid fa-sun text-warning';
+            }
+        });
+
+        // Unit Switcher (sq ft vs sqm)
+        unitFtBtn.addEventListener('click', () => setUnit('sqft'));
+        unitMBtn.addEventListener('click', () => setUnit('sqm'));
+
+        function setUnit(newUnit) {
+            if (state.unit === newUnit) return;
+            
+            state.unit = newUnit;
+
+            if (newUnit === 'sqft') {
+                unitFtBtn.className = 'btn btn-primary fw-semibold px-3';
+                unitMBtn.className = 'btn btn-outline-secondary fw-semibold px-3';
+                
+                sizeInput.min = 200;
+                sizeInput.max = 10000;
+                sizeInput.step = 50;
+                sizeSlider.min = 200;
+                sizeSlider.max = 6000;
+                sizeSlider.step = 25;
+            } else {
+                unitMBtn.className = 'btn btn-primary fw-semibold px-3';
+                unitFtBtn.className = 'btn btn-outline-secondary fw-semibold px-3';
+                
+                sizeInput.min = 20;
+                sizeInput.max = 1000;
+                sizeInput.step = 5;
+                sizeSlider.min = 20;
+                sizeSlider.max = 600;
+                sizeSlider.step = 5;
+            }
+
+            document.querySelectorAll('.unitLabel').forEach(el => {
+                el.textContent = newUnit === 'sqft' ? 'sq ft' : 'm²';
+            });
+
+            updateSliderLabels();
+            syncSizeFields(state.unit === 'sqft' ? state.sizeSqFt : Math.round(state.sizeSqFt / 10.7639));
+            calculate();
+        }
+
+        function updateSliderLabels() {
+            if (state.unit === 'sqft') {
+                sliderMinLabel.textContent = '200 sq ft';
+                sliderMidLabel.textContent = '3,100 sq ft';
+                sliderMaxLabel.textContent = '6,000 sq ft';
+            } else {
+                sliderMinLabel.textContent = '20 m²';
+                sliderMidLabel.textContent = '310 m²';
+                sliderMaxLabel.textContent = '600 m²';
+            }
+        }
+
+        // Bedroom Control Functions
+        function setBedrooms(count) {
+            state.bedrooms = Math.max(1, Math.min(10, count));
+            bedroomsInput.value = state.bedrooms;
+            highlightBedChip();
+            calculate();
+        }
+
+        btnDecBeds.addEventListener('click', () => setBedrooms(state.bedrooms - 1));
+        btnIncBeds.addEventListener('click', () => setBedrooms(state.bedrooms + 1));
+        
+        bedroomsInput.addEventListener('input', (e) => {
+            let val = parseInt(e.target.value) || 1;
+            setBedrooms(val);
+        });
+
+        function highlightBedChip() {
+            const chips = document.querySelectorAll('#bedChipContainer .bed-chip');
+            chips.forEach((chip, idx) => {
+                const bedVal = idx + 1;
+                if (bedVal === state.bedrooms || (idx === 4 && state.bedrooms >= 5)) {
+                    chip.className = 'btn btn-sm btn-primary flex-grow-1 bed-chip fw-semibold';
+                } else {
+                    chip.className = 'btn btn-sm btn-outline-secondary flex-grow-1 bed-chip';
+                }
+            });
+        }
+
+        // Size Inputs Sync
+        function syncSizeFields(value) {
+            const numVal = parseInt(value) || 0;
+            sizeInput.value = numVal;
+            sizeSlider.value = numVal;
+            
+            if (state.unit === 'sqft') {
+                state.sizeSqFt = numVal;
+                sizeDisplayBadge.textContent = `${numVal.toLocaleString()} sq ft`;
+            } else {
+                state.sizeSqFt = Math.round(numVal * 10.7639);
+                sizeDisplayBadge.textContent = `${numVal.toLocaleString()} m²`;
+            }
+        }
+
+        sizeInput.addEventListener('input', (e) => {
+            syncSizeFields(e.target.value);
+            calculate();
+        });
+
+        sizeSlider.addEventListener('input', (e) => {
+            syncSizeFields(e.target.value);
+            calculate();
+        });
+
+        calculateBtn.addEventListener('click', () => {
+            calculate(true);
+            showToast("Recalculated estimate!");
+        });
+
+        // Calculation Logic Engine
+        function calculate(triggerAnimation = false) {
+            const bedrooms = state.bedrooms;
+            const sqft = Math.max(100, state.sizeSqFt);
+            const sqm = sqft / 10.7639;
+
+            // Base rate multiplier
+            const baseRatePerSqFt = 325;
+
+            // Bedroom density factor calculation
+            const areaPerBedSqFt = sqft / bedrooms;
+            let bedroomFactor = 1.0;
+            
+            if (areaPerBedSqFt < 200) {
+                bedroomFactor = 0.88;
+            } else if (areaPerBedSqFt >= 200 && areaPerBedSqFt < 350) {
+                bedroomFactor = 0.96;
+            } else if (areaPerBedSqFt >= 350 && areaPerBedSqFt <= 600) {
+                bedroomFactor = 1.04;
+            } else {
+                bedroomFactor = 1.01;
+            }
+
+            // Valuation
+            const totalValue = Math.round(sqft * baseRatePerSqFt * bedroomFactor);
+            const minValue = Math.round(totalValue * 0.92);
+            const maxValue = Math.round(totalValue * 1.08);
+
+            // Unit Price
+            const displayPricePerUnit = state.unit === 'sqft' 
+                ? Math.round(totalValue / sqft) 
+                : Math.round(totalValue / sqm);
+
+            // Est Rent
+            const estMonthlyRent = Math.round((totalValue * 0.0048) / 10) * 10;
+
+            // Space Score
+            let spaceScore = 100 - Math.abs(areaPerBedSqFt - 450) * 0.1;
+            spaceScore = Math.max(40, Math.min(99, Math.round(spaceScore)));
+
+            // Render Output
+            if (triggerAnimation) {
+                animateNumber(resultValueDisplay, totalValue, '$');
+            } else {
+                resultValueDisplay.textContent = '$' + totalValue.toLocaleString();
+            }
+
+            rangeEstimateText.innerHTML = `<i class="fa-solid fa-circle-info text-primary"></i> Estimated range: $${minValue.toLocaleString()} - $${maxValue.toLocaleString()}`;
+            pricePerUnit.textContent = `$${displayPricePerUnit.toLocaleString()}`;
+            estRentDisplay.textContent = `$${estMonthlyRent.toLocaleString()} /mo`;
+            spaceScoreText.textContent = `${spaceScore}/100`;
+
+            // Density Progress Bar
+            const currentUnitArea = state.unit === 'sqft' ? Math.round(areaPerBedSqFt) : Math.round(areaPerBedSqFt / 10.7639);
+            const unitText = state.unit === 'sqft' ? 'sq ft' : 'm²';
+            areaPerBedDisplay.textContent = `${currentUnitArea.toLocaleString()} ${unitText} / bed`;
+
+            const percent = Math.min(100, Math.max(10, Math.round((areaPerBedSqFt / 700) * 100)));
+            densityProgressBar.style.width = `${percent}%`;
+
+            if (areaPerBedSqFt < 250) {
+                densityFeedback.textContent = "High density layout. Rooms may feel compact.";
+            } else if (areaPerBedSqFt <= 550) {
+                densityFeedback.textContent = "Generous layout with balanced room proportions.";
+            } else {
+                densityFeedback.textContent = "Expansive floor plan with premium open space per room.";
+            }
+
+            // Timestamp
+            const now = new Date();
+            document.getElementById('calculationTimestamp').textContent = `Updated ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        }
+
+        // Live Animated Number Counter
+        function animateNumber(element, finalValue, prefix = '') {
+            const duration = 450;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easedProgress = 1 - Math.pow(1 - progress, 3);
+                const currentVal = Math.floor(easedProgress * finalValue);
+
+                element.textContent = prefix + currentVal.toLocaleString();
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.textContent = prefix + finalValue.toLocaleString();
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Toast Feedback helper
+        function showToast(msg) {
+            document.getElementById('toastMessage').textContent = msg;
+            toastInstance.show();
+        }
+
+        // Copy Summary to Clipboard
+        copyEstimateBtn.addEventListener('click', () => {
+            const sizeStr = state.unit === 'sqft' ? `${state.sizeSqFt} sq ft` : `${Math.round(state.sizeSqFt/10.7639)} m²`;
+            const textToCopy = `Property Estimate Breakdown:\n• Bedrooms: ${state.bedrooms}\n• Total Size: ${sizeStr}\n• Estimated Market Value: ${resultValueDisplay.textContent}\n• Est. Monthly Rent: ${estRentDisplay.textContent}\n• Space Score: ${spaceScoreText.textContent}`;
+
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Breakdown copied to clipboard!");
+            } catch (err) {
+                showToast("Failed to copy breakdown");
+            }
+            document.body.removeChild(tempTextArea);
+        });
+    </script>
 {% endblock %}
