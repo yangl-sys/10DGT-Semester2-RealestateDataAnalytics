@@ -107,23 +107,38 @@
       };
       chartOptions.scales = {
         x: {
+          title: {
+          display: true,
+          text: {{labelx|tojson}},
+          color: '#911',
+          font: {
+            size: 20,
+            lineHeight: 1.2,
+          },
+          padding: {top: 20, left: 0, right: 0, bottom: 0}
+          },
           type: 'linear', 
           grace: '5%'
         },
         y: {
+          title: {
+            display: true,
+            text: {{labely|tojson}},
+            color: '#191',
+            font: {size: 16}
+          },
           beginAtZero: true,
           grace: '5%'
         }
       };
     }
-
     //makes the chart
     new Chart(ctx, { 
       type: graphType,
       data: chartData,
       options: chartOptions
     });
-}
+  }
 </script>
 
 {% endblock %}
