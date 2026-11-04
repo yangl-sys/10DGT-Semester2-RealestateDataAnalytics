@@ -67,18 +67,26 @@ def predict():
      df = pd.DataFrame(data)
      print(df)
      if request.method =="POST":
-          bed = int(request.form.get("bedroomsInput"))
-          size = int(request.form.get("sizeInput"))
-          mperbed = size/bed
-          def get_avg(x,y,value):
-               slope, intercept = np.polyfit(df[x], df[y], deg=1)
-               avg = intercept + slope * value
-               return avg
-          valueb = get_avg(4,3,bed)
-          values = get_avg(5,3,size)
-          value = f"{(valueb+values)/2:,.2f}"
-          minval = f"{min([valueb,values]):,.2f}"
-          maxval = f"{max([valueb,values]):,.2f}"
+          try:
+               bed = int(request.form.get("bedroomsInput"))
+               size = int(request.form.get("sizeInput"))
+               mperbed = size/bed
+               def get_avg(x,y,value):
+                    slope, intercept = np.polyfit(df[x], df[y], deg=1)
+                    avg = intercept + slope * value
+                    return avg
+               valueb = get_avg(4,3,bed)
+               values = get_avg(5,3,size)
+               value = f"{(valueb+values)/2:,.2f}"
+               minval = f"{min([valueb,values]):,.2f}"
+               maxval = f"{max([valueb,values]):,.2f}"
+          except ZeroDivisionError:
+               bed = 0
+               size = 0
+               mperbed = 0
+               value = 0
+               minval = 0
+               maxval = 0
      else:
           bed = 0
           size = 0
