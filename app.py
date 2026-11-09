@@ -1,16 +1,11 @@
 import numpy as np
 
 from flask import Flask, render_template, redirect, url_for, request
-import matplotlib
 import pandas as pd
 import sqlite3
 import io
 import base64
-import matplotlib.dates as mdates
-from datetime import datetime
-
-# this makes the matplot stuff run on another thread to prevent "UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail."
-matplotlib.use('Agg') 
+from datetime import datetime 
 
 app = Flask(__name__)
 
@@ -21,8 +16,12 @@ def get_db_connection():
 
 @app.route('/')
 def index():
-     
-     return render_template('index.html')
+     conn = get_db_connection()
+     maxp = f"{conn.execute("SELECT MAX(price) FROM sold").fetchone()[0]:,.2f}"
+     amt = f"{conn.execute("SELECT COUNT(price) FROM sold").fetchone()[0]:,}"
+     avgp = f"{conn.execute("SELECT AVG(price) FROM sold").fetchone()[0]:,.2f}"
+     conn.close()
+     return render_template('index.html',max = maxp,avg=avgp,amt = amt)
 
 @app.route('/raw')
 def raw():
@@ -39,11 +38,14 @@ def graphs():
      df = pd.DataFrame(data, columns = columnnames)
      columnnames.remove("ID")
      columnnamesx = columnnames
-     columnnamesy = [i for i in columnnames if pd.api.types.is_any_real_numeric_dtype(df[i])]
+     columnnamesy = [i for i in columnnames if pd.api.types.is_any_real_numeric_dtype(df[i])] #makes y axis options only int/float
      if request.method =="POST":
           labelx = request.form.get("x")
           labely = request.form.get("y")
           x = df[labelx]
+          x = pd.to_datetime(x, errors='ignore') #if it isn't datetime, it will error but revert to previous state
+          if x.dtype == datetime:
+               pass
           y = df[labely]
           cdata= [{'x':nx,'y':ny} for nx,ny in zip(x,y)]
           #make it so that dates work with trendline
@@ -95,9 +97,4 @@ def predict():
           minval = 0
           maxval = 0
      conn.close()
-     return render_template('predict.html', bed = bed, size = size, mperbed = mperbed, value = value, minval = minval, maxval =maxval)
-
-@app.route('/trends')
-def trends():
-     return render_template('trends.html')
-    
+     return render_template('predict.html', bed = bed, size = size, mperbed = mperbed, value = value, minval = minval, maxval = maxval)
