@@ -32,7 +32,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
 <script>
@@ -59,37 +58,20 @@
           borderWidth: 1
         }]
       }
-      const hasDateObject = Data.some(item => !isNaN(Date.parse(item.x))); //checks if the string is a date
-      console.log(hasDateObject)
-      if (hasDateObject) {
-        chartOptions.scales = {
-          x: {
-            type: 'time', 
-            time: {
-              unit: "month",
-              parser: 'dd-MMM-yyyy'
-            }
-          },
-          y: {
-            beginAtZero: true,
-            grace: '5%'
-          }
-        };
-        }
     }
     else {
+      const hasUnixTimestamp = Data.some(item => {
+        const num = Number(item.x);
+        return Number.isInteger(num) && num > 315532800000;
+      });
+
       graphType = 'scatter';
-      //sets the variable to something readable by chart js [{x:"",y:""},{x:"",y:""] and makes the values floats
-      const parsedCoordinates = Data.map(item => ({
-        x: parseFloat(item.x),
-        y: parseFloat(item.y)
-      }));
 
       chartData = {
         datasets: [
           {
             label: 'Graph of {{labelx}} vs. {{labely}}',
-            data: parsedCoordinates,
+            data: Data.map(item => ({ x: parseFloat(item.x), y: parseFloat(item.y) })), //parses the data to make it readable by js as a float
             backgroundColor: 'rgb(54, 162, 235)',
             pointRadius: 6,
             xAxisID: 'x',
@@ -105,27 +87,26 @@
           }
         ]
       };
+
       chartOptions.scales = {
         x: {
+          type: hasUnixTimestamp ? 'time' : 'linear', //if the data is unix timestamp, type is time, else linear
+          ...(hasUnixTimestamp && { time: { unit: 'month' } }), //if unix timestamp, time usnit is month
           title: {
-          display: true,
-          text: {{labelx|tojson}},
-          color: '#911',
-          font: {
-            size: 20,
-            lineHeight: 1.2,
+            display: true,
+            text: {{ labelx|tojson }},
+            color: '#911',
+            font: { size: 20, lineHeight: 1.2 },
+            padding: { top: 20, left: 0, right: 0, bottom: 0 }
           },
-          padding: {top: 20, left: 0, right: 0, bottom: 0}
-          },
-          type: 'linear', 
           grace: '5%'
         },
         y: {
           title: {
             display: true,
-            text: {{labely|tojson}},
+            text: {{ labely|tojson }},
             color: '#191',
-            font: {size: 16}
+            font: { size: 16 }
           },
           beginAtZero: true,
           grace: '5%'

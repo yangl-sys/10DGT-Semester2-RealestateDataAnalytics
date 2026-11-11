@@ -1,5 +1,5 @@
 import numpy as np
-
+import copy
 from flask import Flask, render_template, redirect, url_for, request
 import pandas as pd
 import sqlite3
@@ -43,9 +43,11 @@ def graphs():
           labelx = request.form.get("x")
           labely = request.form.get("y")
           x = df[labelx]
-          x = pd.to_datetime(x, errors='ignore') #if it isn't datetime, it will error but revert to previous state
-          if x.dtype == datetime:
-               pass
+          print(x)
+          if pd.api.types.is_string_dtype(x):
+               converted = pd.to_datetime(x, errors='coerce')  #if it isn't datetime, it will error but make everything NaT
+               if converted.notna().all(): #checks if there aren't any nats
+                    x = converted.astype("int64")/(10**3) #converts to timestamp
           y = df[labely]
           cdata= [{'x':nx,'y':ny} for nx,ny in zip(x,y)]
           #make it so that dates work with trendline
@@ -60,6 +62,7 @@ def graphs():
           labelx=''
           labely=''
      conn.close()
+     print(cdata)
      return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely,trendlinedata = trendline)
 
 @app.route('/predict',methods=['POST',"GET"])
