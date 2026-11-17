@@ -23,12 +23,18 @@ def index():
      conn.close()
      return render_template('index.html',max = maxp,avg=avgp,amt = amt)
 
-@app.route('/raw')
+@app.route('/raw', methods=['GET', 'POST'])
 def raw():
      conn = get_db_connection()
-     data = conn.execute("SELECT * FROM sold").fetchall()
+     if request.method == "POST":
+          data = conn.execute("SELECT * FROM sold").fetchall()
+     else:
+          data = conn.execute("SELECT * FROM sold").fetchall()
+     info = conn.execute("SELECT name FROM pragma_table_info('sold');").fetchall() #selects column name from the table info pragma
+     cols = [row["name"] for row in info]
      conn.close()
-     return render_template('raw.html',data=data)
+
+     return render_template('raw.html',data=data,options = cols)
 
 @app.route('/graphs', methods=['GET', 'POST'])
 def graphs():
@@ -43,7 +49,6 @@ def graphs():
           labelx = request.form.get("x")
           labely = request.form.get("y")
           x = df[labelx]
-          print(x)
           if pd.api.types.is_string_dtype(x):
                converted = pd.to_datetime(x, errors='coerce')  #if it isn't datetime, it will error but make everything NaT
                if converted.notna().all(): #checks if there aren't any nats
@@ -62,7 +67,6 @@ def graphs():
           labelx=''
           labely=''
      conn.close()
-     print(cdata)
      return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely,trendlinedata = trendline)
 
 @app.route('/predict',methods=['POST',"GET"])
