@@ -17,8 +17,10 @@ def get_db_connection():
 
 @app.before_request
 def initialize_session():
-    session.setdefault("bed",0)
-    session.setdefault("size",0)
+     session.setdefault("bed",0)
+     session.setdefault("size",0)
+     session.setdefault("labely","")
+     session.setdefault("labelx","")
 
 @app.route('/')
 def index():
@@ -53,9 +55,11 @@ def graphs():
      columnnames.remove("ID")
      columnnamesx = columnnames
      columnnamesy = [i for i in columnnames if pd.api.types.is_any_real_numeric_dtype(df[i])] #makes y axis options only int/float
+     
      if request.method =="POST":
-          labelx = request.form.get("x")
-          labely = request.form.get("y")
+          session["labelx"] = request.form.get("x")
+          session["labely"]= request.form.get("y")
+          labelx,labely = session["labelx"], session["labely"]
           x = df[labelx]
           if pd.api.types.is_string_dtype(x):
                converted = pd.to_datetime(x, errors='coerce')  #if it isn't datetime, it will error but make everything NaT
@@ -72,8 +76,8 @@ def graphs():
      else:
           cdata=[]
           trendline = []
-          labelx=''
-          labely=''
+          labelx=session["labelx"]
+          labely=session["labely"]
      conn.close()
      return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely,trendlinedata = trendline)
 
