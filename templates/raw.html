@@ -1,45 +1,62 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h1>Raw data</h1>
-  <body>
-    <div>
-        <form id = "form" method="POST">
-            <select class="form-select" name = "filter" required>
-                <option value = "" disabled selected> Select filter</option>
-                {%for i in options%}
-                <option>
-                    {{i}}
-                </option>
-                {%endfor%}
-            </select>
-        </form>
-    </div>
-    <div>
-    <table class="table table-responsive table-striped">
-        <thead>
-            <tr>
-            <th scope="col">House Id</th>
-            <th scope="col">Address</th>
-            <th scope="col">Date Sold</th>
-            <th scope="col">Price</th>
-            <th scope="col">Beds</th>
-            <th scope="col">Size(m²)</th>
-            </tr>
-        </thead>
-        {%for i in data%}
-        <tbody>
-            <tr>
-            <th scope="row">{{i[0]}}</th>
-            <td>{{i[1]}}</td>
-            <td>{{i[2]}}</td>
-            <td>{{i[3]}}</td>
-            <td>{{i[4]}}</td> 
-            <td>{{i[5]}}</td> 
-            </tr>
-        </tbody>
-        {%endfor%}
-    </table>
-    </div>
+<h1>Raw data</h1>
+    <body>
+        <div>
+            <form id = "form" method="POST">
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <select class="form-select" name = "filter" required>
+                            <option value = "" disabled selected> Select Filter</option>
+                            {%for i in options%}
+                            <option>
+                                {{i}}
+                            </option>
+                            {%endfor%}
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <select class="form-select" name = "order" required>
+                        <option value = "" disabled selected> Select Order</option>
+                        <option value = "DESC"> Descending </option>
+                        <option value = "ASC"> Ascending </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <button type="submit" class="btn px-5 py-2">Filter</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div>
+        <table class="table table-responsive table-striped">
+            <thead>
+                <tr>
+                <th scope="col">House Id</th>
+                <th scope="col">Address</th>
+                <th scope="col">Date Sold</th>
+                <th scope="col">Price</th>
+                <th scope="col">Beds</th>
+                <th scope="col">Size(m²)</th>
+                </tr>
+            </thead>
+            {%for i in data%}
+            <tbody>
+                <tr>
+                <th scope="row">{{i[0]}}</th>
+                <td>{{i[1]}}</td>
+                <td>{{i[2]}}</td>
+                <td>{{i[3]}}</td>
+                <td>{{i[4]}}</td> 
+                <td>{{i[5]}}</td> 
+                </tr>
+            </tbody>
+            {%endfor%}
+        </table>
+        </div>
 </body>
 {% endblock %}

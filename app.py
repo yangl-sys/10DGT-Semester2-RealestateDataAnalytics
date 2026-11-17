@@ -27,7 +27,9 @@ def index():
 def raw():
      conn = get_db_connection()
      if request.method == "POST":
-          data = conn.execute("SELECT * FROM sold").fetchall()
+          order = request.form.get("order")
+          column = request.form.get("filter")
+          data = conn.execute(f"SELECT * FROM sold ORDER BY {column} {order}").fetchall()
      else:
           data = conn.execute("SELECT * FROM sold").fetchall()
      info = conn.execute("SELECT name FROM pragma_table_info('sold');").fetchall() #selects column name from the table info pragma
