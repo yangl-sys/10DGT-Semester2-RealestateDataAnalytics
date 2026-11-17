@@ -1,6 +1,6 @@
 import numpy as np
 import copy
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, session
 import pandas as pd
 import sqlite3
 import io
@@ -8,11 +8,17 @@ import base64
 from datetime import datetime 
 
 app = Flask(__name__)
+app.secret_key = "highlyverysecurekeystring"
 
 def get_db_connection():
     conn = sqlite3.connect("ttg_housing.db")
     conn.row_factory = sqlite3.Row
     return conn
+
+@app.before_request
+def initialize_session():
+    session.setdefault("bed",0)
+    session.setdefault("size",0)
 
 @app.route('/')
 def index():
@@ -79,8 +85,9 @@ def predict():
      print(df)
      if request.method =="POST":
           try:
-               bed = int(request.form.get("bedroomsInput"))
-               size = int(request.form.get("sizeInput"))
+               session["bed"] = int(request.form.get("bedroomsInput"))
+               session["size"] = int(request.form.get("sizeInput"))
+               bed, size = session["bed"], session["size"]
                mperbed = size/bed
                def get_avg(x,y,value):
                     slope, intercept = np.polyfit(df[x], df[y], deg=1)
@@ -99,8 +106,8 @@ def predict():
                minval = 0
                maxval = 0
      else:
-          bed = 0
-          size = 0
+          bed = session["bed"]
+          size = session["size"]
           mperbed = 0
           value = 0
           minval = 0
