@@ -6,24 +6,41 @@
     <form id = "form" method="POST">
       <label class="form-label fw-bold">x axis</label>
       <select class="form-select" name = "x" required>
-        <option value = "" disabled selected> Select x-axis</option>
+        {% if labelx == "def"%}
+          <option value = "" disabled selected> Select x-axis</option>
+        {%endif%}
+
         {%for i in optionsx%}
-        <option>
+        {% if i == labelx%}
+          <option selected>
+              {{i}}
+          </option>
+        {%else%}
+          <option>
             {{i}}
-        </option>
+          </option>
+        {%endif%}
         {%endfor%}
       </select>
 
       <label class="form-label fw-bold">y axis</label>
       <select class="form-select" name = "y" required>
-        <option value = "" disabled selected> Select y-axis</option>
+        {% if labelx == "def" %}
+          <option value = "" disabled selected> Select y-axis</option>
+        {%endif%}
         {%for i in optionsy%}
-        <option>
-            {{i}}
-        </option>
+          {% if i == labely%}
+            <option selected>
+                {{i}}
+            </option>
+          {%else%}
+            <option>
+              {{i}}
+            </option>
+          {%endif%}
         {%endfor%}
       </select>
-      
+      <button type="submit" class="btn px-5 py-2">Create Graph</button>
     </form>
   </div>
 

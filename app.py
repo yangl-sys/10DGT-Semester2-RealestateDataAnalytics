@@ -19,8 +19,10 @@ def get_db_connection():
 def initialize_session():
      session.setdefault("bed",0)
      session.setdefault("size",0)
-     session.setdefault("labely","")
-     session.setdefault("labelx","")
+     session.setdefault("labely","def")
+     session.setdefault("labelx","def")
+     session.setdefault("cdata",[])
+     session.setdefault("trendline",[])
 
 @app.route('/')
 def index():
@@ -66,18 +68,17 @@ def graphs():
                if converted.notna().all(): #checks if there aren't any nats
                     x = converted.astype("int64")/(10**3) #converts to timestamp
           y = df[labely]
-          cdata= [{'x':nx,'y':ny} for nx,ny in zip(x,y)]
+          session["cdata"]= [{'x':nx,'y':ny} for nx,ny in zip(x,y)]
           #make it so that dates work with trendline
           if pd.api.types.is_numeric_dtype(x):
                slope, intercept = np.polyfit(x, y, deg=1) #finds slope and intercept using x and y as points
-               trendline = [{'x':min(x),'y':intercept + slope * min(x)},{'x':max(x),'y':intercept + slope * max(x)}]
+               session["trendline"] = [{'x':min(x),'y':intercept + slope * min(x)},{'x':max(x),'y':intercept + slope * max(x)}]
           else:
-               trendline = []
-     else:
-          cdata=[]
-          trendline = []
-          labelx=session["labelx"]
-          labely=session["labely"]
+               session["trendline"] = []
+     cdata = session["cdata"]
+     trendline = session["trendline"]
+     labelx=session["labelx"]
+     labely=session["labely"]
      conn.close()
      return render_template('graphs.html',optionsx = columnnamesx,optionsy=columnnamesy,cdata=cdata, labelx = labelx, labely=labely,trendlinedata = trendline)
 
@@ -86,7 +87,6 @@ def predict():
      conn = get_db_connection()
      data = conn.execute("SELECT * FROM sold").fetchall()
      df = pd.DataFrame(data)
-     print(df)
      if request.method =="POST":
           try:
                session["bed"] = int(request.form.get("bedroomsInput"))
